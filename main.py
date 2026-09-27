@@ -21,6 +21,11 @@ class TaskPatch(BaseModel):
     title: Optional[str] = None
     completed: Optional[bool] = None
 
+class TaskResponse(BaseModel):
+    id: int
+    title: str
+    completed: bool
+
 # Create the FastAPI app instance.
 # This object is used to register routes and run the API.
 app = FastAPI()
@@ -53,6 +58,9 @@ def root():
 # @app.get("/tasks")
 # def get_tasks():
 #     return tasks
+@app.get("/tasks", response_model=list[TaskResponse])
+def get_tasks():
+    return tasks
 
 # GET /tasks?completed=true
 # This route is meant to return only completed tasks.
@@ -83,7 +91,7 @@ def get_completed_tasks():
 
 # GET /tasks/{task_id}
 # Finds one task by its unique numeric id.
-@app.get("/tasks/{task_id}")
+@app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
@@ -95,7 +103,7 @@ def get_task(task_id: int):
 
 # POST /tasks
 # Creates a new task from the request body.
-@app.post("/tasks", status_code=status.HTTP_201_CREATED)
+@app.post("/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
     new_task = {
         "id": len(tasks) + 1,
