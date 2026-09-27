@@ -1,5 +1,5 @@
 from fastapi import FastAPI, status, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 # This file creates a small REST API for managing tasks.
@@ -9,7 +9,7 @@ from typing import Optional
 # They also validate the data before it reaches the endpoint.
 class TaskCreate(BaseModel):
     # A task must include a title when creating it.
-    title: str
+    title: str = Field(..., min_length=3, max_length=100)
 
 
 class TaskUpdate(BaseModel):
