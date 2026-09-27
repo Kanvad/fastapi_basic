@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
 
-router = APIRouter(prefix="/tasks")
+router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 # GET /tasks?completed=true
 @router.get("", response_model=list[TaskResponse])
