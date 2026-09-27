@@ -1,33 +1,8 @@
 from fastapi import FastAPI, status, HTTPException
-from pydantic import BaseModel, Field
 from typing import Optional
 
-# This file creates a small REST API for managing tasks.
-# FastAPI automatically turns Python functions into HTTP endpoints.
+from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 
-# Pydantic models define the shape of the incoming JSON request body.
-# They also validate the data before it reaches the endpoint.
-class TaskCreate(BaseModel):
-    # A task must include a title when creating it.
-    title: str = Field(..., min_length=3, max_length=100)
-
-
-class TaskUpdate(BaseModel):
-    # When updating a task, both the title and completion status are required.
-    title: str
-    completed: bool
-
-class TaskPatch(BaseModel):
-    title: Optional[str] = Field(None, min_length=3, max_length=100)
-    completed: Optional[bool] = None
-
-class TaskResponse(BaseModel):
-    id: int
-    title: str
-    completed: bool
-
-# Create the FastAPI app instance.
-# This object is used to register routes and run the API.
 app = FastAPI()
 
 # In-memory data storage for the demo app.
@@ -53,18 +28,10 @@ def root():
     return {"message": "Hello FastAPI"}
 
 
-# GET /tasks
-# Returns every task currently stored in memory.
-# @app.get("/tasks")
-# def get_tasks():
-#     return tasks
-@app.get("/tasks", response_model=list[TaskResponse])
-def get_tasks():
-    return tasks
 
 # GET /tasks?completed=true
 # This route is meant to return only completed tasks.
-@app.get("/tasks")
+@app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(completed: Optional[bool] = None):
 
     if completed is None:
