@@ -18,7 +18,7 @@ class TaskUpdate(BaseModel):
     completed: bool
 
 class TaskPatch(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=3, max_length=100)
     completed: Optional[bool] = None
 
 class TaskResponse(BaseModel):
