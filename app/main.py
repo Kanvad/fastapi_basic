@@ -1,7 +1,4 @@
-from fastapi import FastAPI, status, HTTPException
-from typing import Optional
-
-from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
+from fastapi import FastAPI
 from app.routers.tasks import router
 
 app = FastAPI()
