@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
@@ -43,8 +43,8 @@ def get_completed_tasks():
 
 # GET /tasks/{task_id}
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task_id: int):
-    return find_task(task_id)
+def get_task(task: dict = Depends(find_task)):
+    return task
 
 
 
@@ -64,30 +64,27 @@ def create_task(task: TaskCreate):
 
 # PUT /tasks/{task_id}
 @router.put("/{task_id}")
-def update_task(task_id: int, task: TaskUpdate):
-    item = find_task(task_id)
+def update_task(task_update: TaskUpdate, task: dict = Depends(find_task)):
+    if task_update is not None:
+        task["title"] = task_update.title
+        task["completed"] = task_update.completed
 
-    item["title"] = task.title
-    item["completed"] = task.completed
+    return task
 
-    return item
 
 
 # DELETE /tasks/{task_id}
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id: int):
-    task = find_task(task_id)
+def delete_task(task: dict = Depends(find_task)):
     tasks.remove(task)
 
 
 # PATCH /tasks/{task_id}
 @router.patch("/{task_id}")
-def patch_task(task_id: int, task: TaskPatch):
-    item = find_task(task_id)
+def patch_task(task_patch: TaskPatch, task: dict = Depends(find_task)):
+    if task_patch.title is not None:
+        task["title"] = task_patch.title
+    if task_patch.completed is not None:
+        task["completed"] = task_patch.completed
 
-    if task.title is not None:
-        item["title"] = task.title
-    if task.completed is not None:
-        item["completed"] = task.completed
-
-    return item
+    return task
