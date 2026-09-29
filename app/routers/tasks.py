@@ -4,7 +4,15 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
 
-router = APIRouter(prefix="/tasks", tags=["Tasks"])
+def verify_api_key(api_key: str):
+    if api_key != "secret123":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API Key",
+        )
+
+router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(verify_api_key)])
+
 
 def find_task(task_id: int):
     for task in tasks:
