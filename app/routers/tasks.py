@@ -4,12 +4,17 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
 
+API_KEY = "secret123"
+
 def verify_api_key(api_key: str):
-    if api_key != "secret123":
+    if api_key != API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API Key",
         )
+
+def get_current_api_key(api_key: str):
+    return api_key
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(verify_api_key)])
 
@@ -23,6 +28,10 @@ def find_task(task_id: int):
         status_code=404,
         detail="Task not found",
     )
+
+@router.get("/some_endpoint")
+def some_endpoint(api_key: str = Depends(get_current_api_key)):
+    return {"api_key": api_key}
 
 # GET /tasks?completed=true
 @router.get("", response_model=list[TaskResponse])
