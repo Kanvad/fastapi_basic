@@ -33,7 +33,9 @@ def validate_owner_id(owner_id: int | None = None):
 
 
 def log_request():
-    print("Task API called")
+    print("Request started")
+    yield
+    print("Request finished")
 
 
 def get_task_owner(task: dict = Depends(find_task)):

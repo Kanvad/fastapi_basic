@@ -27,7 +27,7 @@ def some_endpoint(api_key: str = Depends(get_current_api_key)):
 # GET /tasks
 @router.get("", response_model=list[TaskResponse])
 def get_tasks(
-    owner: dict | None = Depends(validate_owner_id),
+    owner: dict | None = Depends(validate_owner_id),_: None = Depends(log_request)
 ):
     if owner is None:
         return tasks
