@@ -12,7 +12,7 @@ class OwnerResponse(OwnerBase):
 
 class TaskCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)
-    owner: Optional[OwnerCreate] = None
+    owner_id: Optional[int] = None
 
 
 class TaskUpdate(BaseModel):
@@ -27,4 +27,4 @@ class TaskResponse(BaseModel):
     id: int
     title: str
     completed: bool
-    owner: Optional[OwnerResponse] = None
+    owner_id: Optional[int] = None

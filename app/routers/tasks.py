@@ -68,15 +68,20 @@ def get_task(task: dict = Depends(find_task)):
 # POST /tasks
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
+    if task.owner_id is not None:
+        # Check if the owner exists
+        owner_exists = any(owner["id"] == task.owner_id for owner in owners)
+        if not owner_exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Owner not found")
+
     new_task = {
-        "id": len(tasks) + 1,
+        "id": max((item["id"] for item in tasks), default=0) + 1,
         "title": task.title,
         "completed": False,
-        "owner": task.owner
+        "owner_id": task.owner_id,
     }
 
     tasks.append(new_task)
-
     return new_task
 
 
