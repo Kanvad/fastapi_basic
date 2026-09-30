@@ -44,9 +44,11 @@ def get_task_owner(task: dict = Depends(find_task)):
         return find_owner(owner_id)
     return None
 
-def fake_resource():
-    print("Resource opened")
+def get_db():
+    print("DB connection opened")
 
-    yield "resource"
+    db = {"connected": True}
 
-    print("Resource closed")
+    yield db
+
+    print("DB connection closed")

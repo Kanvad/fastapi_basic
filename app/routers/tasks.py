@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
-from app.dependencies import find_owner, find_task, validate_owner_id, log_request, get_task_owner, fake_resource
+from app.dependencies import find_owner, find_task, validate_owner_id, log_request, get_task_owner, get_db
 
 API_KEY = "secret123"
 
@@ -38,13 +38,9 @@ def get_tasks(
         if task.get("owner_id") == owner["id"]
     ]
 
-@router.get("/resource")
-def get_resource(resource: str = Depends(fake_resource)):
-    print("2. Endpoint running")
-    raise HTTPException(
-        status_code=500,
-        detail="Something went wrong"
-    )
+@router.get("/db")
+def get_resource(db: str = Depends(get_db)):
+    raise HTTPException(status_code=500, detail="Database error")
 
 # GET /tasks/completed
 @router.get("/completed", response_model=list[TaskResponse])
