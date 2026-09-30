@@ -71,7 +71,8 @@ def create_task(task: TaskCreate):
     new_task = {
         "id": len(tasks) + 1,
         "title": task.title,
-        "completed": False
+        "completed": False,
+        "owner": task.owner
     }
 
     tasks.append(new_task)
