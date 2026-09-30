@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
 
 from app.data import owners, tasks
 
@@ -31,3 +31,13 @@ def validate_owner_id(owner_id: int | None = None):
 
     return find_owner(owner_id)
 
+
+def log_request():
+    print("Task API called")
+
+
+def get_task_owner(task: dict = Depends(find_task)):
+    owner_id = task.get("owner_id")
+    if owner_id is not None:
+        return find_owner(owner_id)
+    return None

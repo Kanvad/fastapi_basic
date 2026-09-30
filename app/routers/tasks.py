@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
-from app.dependencies import find_owner, find_task, validate_owner_id
+from app.dependencies import find_owner, find_task, validate_owner_id, log_request, get_task_owner
 
 API_KEY = "secret123"
 
@@ -17,7 +17,7 @@ def verify_api_key(api_key: str):
 def get_current_api_key(api_key: str):
     return api_key
 
-router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(verify_api_key)])
+router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(log_request)])
 
 
 @router.get("/some_endpoint")
@@ -53,6 +53,9 @@ def get_completed_tasks():
 def get_task(task: dict = Depends(find_task)):
     return task
 
+@router.get("/{task_id}/owner", response_model=Optional[dict])
+def get_task_owner_endpoint(owner: Optional[dict] = Depends(get_task_owner)):
+    return owner
 
 
 # POST /tasks
