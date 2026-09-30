@@ -1,21 +1,10 @@
-from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from app.schemas import OwnerCreate, OwnerResponse
+from app.schemas import OwnerCreate, OwnerResponse, OwnerUpdate, OwnerPatch
 from app.data import owners, tasks
+from app.dependencies import find_owner
 
 router = APIRouter(prefix="/owners", tags=["Owners"])
-
-
-def find_owner(owner_id: int):
-    for owner in owners:
-        if owner["id"] == owner_id:
-            return owner
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Owner not found",
-    )
 
 
 @router.get("", response_model=list[OwnerResponse])
@@ -52,3 +41,18 @@ def delete_owner(owner: dict = Depends(find_owner)):
         )
 
     owners.remove(owner)
+
+
+@router.put("/{owner_id}", response_model=OwnerResponse)
+def update_owner(owner_update: OwnerUpdate, owner: dict = Depends(find_owner)):
+    owner["name"] = owner_update.name
+    return owner
+
+
+@router.patch("/{owner_id}", response_model=OwnerResponse)
+def patch_owner(owner_patch: OwnerPatch, owner: dict = Depends(find_owner)):
+    owner["name"] = (
+        owner_patch.name if owner_patch.name is not None else owner["name"]
+    )
+
+    return owner

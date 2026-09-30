@@ -10,6 +10,12 @@ class OwnerCreate(OwnerBase):
 class OwnerResponse(OwnerBase):
     id: int
 
+class OwnerUpdate(OwnerBase):
+    pass
+
+class OwnerPatch(BaseModel):
+    name: Optional[str] = None
+
 class TaskCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)
     owner_id: Optional[int] = None

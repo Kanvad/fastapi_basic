@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
+from app.dependencies import find_owner, find_task
 
 API_KEY = "secret123"
 
@@ -18,26 +19,6 @@ def get_current_api_key(api_key: str):
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(verify_api_key)])
 
-
-def find_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-
-    raise HTTPException(
-        status_code=404,
-        detail="Task not found",
-    )
-
-def find_owner(owner_id: int):
-    for owner in owners:
-        if owner["id"] == owner_id:
-            return owner
-
-    raise HTTPException(
-        status_code=404,
-        detail="Owner not found",
-    )
 
 @router.get("/some_endpoint")
 def some_endpoint(api_key: str = Depends(get_current_api_key)):
