@@ -2,15 +2,13 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 class OwnerBase(BaseModel):
-    id: int
     name: str
 
 class OwnerCreate(OwnerBase):
-    id: Optional[int] = None
-    name: str = Field(...)
+    pass
 
 class OwnerResponse(OwnerBase):
-    pass
+    id: int
 
 class TaskCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)
