@@ -6,7 +6,8 @@ class OwnerBase(BaseModel):
     name: str
 
 class OwnerCreate(OwnerBase):
-    pass
+    id: Optional[int] = None
+    name: str = Field(...)
 
 class OwnerResponse(OwnerBase):
     pass
