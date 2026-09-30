@@ -43,3 +43,10 @@ def get_task_owner(task: dict = Depends(find_task)):
     if owner_id is not None:
         return find_owner(owner_id)
     return None
+
+def fake_resource():
+    print("Resource opened")
+
+    yield "resource"
+
+    print("Resource closed")
