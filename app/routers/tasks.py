@@ -29,6 +29,16 @@ def find_task(task_id: int):
         detail="Task not found",
     )
 
+def find_owner(owner_id: int):
+    for owner in owners:
+        if owner["id"] == owner_id:
+            return owner
+
+    raise HTTPException(
+        status_code=404,
+        detail="Owner not found",
+    )
+
 @router.get("/some_endpoint")
 def some_endpoint(api_key: str = Depends(get_current_api_key)):
     return {"api_key": api_key}
@@ -69,10 +79,7 @@ def get_task(task: dict = Depends(find_task)):
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
     if task.owner_id is not None:
-        # Check if the owner exists
-        owner_exists = any(owner["id"] == task.owner_id for owner in owners)
-        if not owner_exists:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Owner not found")
+        find_owner(task.owner_id)
 
     new_task = {
         "id": max((item["id"] for item in tasks), default=0) + 1,
