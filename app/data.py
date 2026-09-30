@@ -4,10 +4,7 @@ tasks = [
     "title": "Learn FastAPI",
     "completed": False,
     "internal_note": "This is an internal note",
-    "owner": {
-        "id": 10,
-        "name": "Phat"
-    }
+    "owner_id": 10,
 },
 {
     "id": 2,

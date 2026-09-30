@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
-from app.dependencies import find_owner, find_task
+from app.dependencies import find_owner, find_task, validate_owner_id
 
 API_KEY = "secret123"
 
@@ -24,20 +24,19 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(verify
 def some_endpoint(api_key: str = Depends(get_current_api_key)):
     return {"api_key": api_key}
 
-# GET /tasks?completed=true
+# GET /tasks
 @router.get("", response_model=list[TaskResponse])
-def get_tasks(completed: Optional[bool] = None):
-
-    if completed is None:
+def get_tasks(
+    owner: dict | None = Depends(validate_owner_id),
+):
+    if owner is None:
         return tasks
 
-    filtered_tasks = []
-
-    for task in tasks:
-        if task["completed"] == completed:
-            filtered_tasks.append(task)
-
-    return filtered_tasks
+    return [
+        task
+        for task in tasks
+        if task.get("owner_id") == owner["id"]
+    ]
 
 # GET /tasks/completed
 @router.get("/completed", response_model=list[TaskResponse])
@@ -59,6 +58,7 @@ def get_task(task: dict = Depends(find_task)):
 # POST /tasks
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
+
     if task.owner_id is not None:
         find_owner(task.owner_id)
 

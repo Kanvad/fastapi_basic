@@ -23,3 +23,11 @@ def find_owner(owner_id: int):
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Owner not found",
     )
+
+
+def validate_owner_id(owner_id: int | None = None):
+    if owner_id is None:
+        return None
+
+    return find_owner(owner_id)
+
