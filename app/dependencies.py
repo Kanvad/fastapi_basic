@@ -52,3 +52,6 @@ def get_db():
     yield db
 
     print("DB connection closed")
+
+def get_current_user():
+    return {"id": 1, "name": "Phat"}
