@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.schemas import OwnerCreate, OwnerResponse
-from app.data import owners
+from app.data import owners, tasks
 
 router = APIRouter(prefix="/owners", tags=["Owners"])
 
@@ -40,4 +40,15 @@ def create_owner(owner: OwnerCreate):
 
 @router.delete("/{owner_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_owner(owner: dict = Depends(find_owner)):
+    owner_is_used = any(
+        task.get("owner_id") == owner["id"]
+        for task in tasks
+    )
+
+    if owner_is_used:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Owner is being used by a task",
+        )
+
     owners.remove(owner)
