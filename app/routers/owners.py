@@ -4,6 +4,7 @@ from app.schemas import OwnerCreate, OwnerResponse, OwnerUpdate, OwnerPatch
 from app.data import owners, tasks
 from app.dependencies import find_owner
 from app.exceptions import OwnerInUseError
+from app.services.owner_service import delete_owner, create_owner
 
 router = APIRouter(prefix="/owners", tags=["Owners"])
 
@@ -19,26 +20,13 @@ def get_owner(owner: dict = Depends(find_owner)):
 
 
 @router.post("", response_model=OwnerResponse, status_code=status.HTTP_201_CREATED)
-def create_owner(owner: OwnerCreate):
-    new_owner = {
-        "id": max((item["id"] for item in owners), default=0) + 1,
-        "name": owner.name,
-    }
-    owners.append(new_owner)
-    return new_owner
+def create_owner_endpoint(owner: OwnerCreate):
+    return create_owner(owner.name)
 
 
 @router.delete("/{owner_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_owner(owner: dict = Depends(find_owner)):
-    owner_is_used = any(
-        task.get("owner_id") == owner["id"]
-        for task in tasks
-    )
-
-    if owner_is_used:
-        raise OwnerInUseError(owner["id"])
-
-    owners.remove(owner)
+def delete_owner_endpoint(owner: dict = Depends(find_owner)):
+    delete_owner(owner)
 
 
 @router.put("/{owner_id}", response_model=OwnerResponse)

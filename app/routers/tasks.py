@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
 from app.dependencies import find_owner, find_task, validate_owner_id, log_request, get_task_owner, get_db, get_current_user
+from app.services.task_service import create_task as create_task_service, update_task as update_task_service, patch_task as patch_task_service, delete_task as delete_task_service
 
 API_KEY = "secret123"
 
@@ -73,40 +74,27 @@ def create_task(task: TaskCreate):
     if task.owner_id is not None:
         find_owner(task.owner_id)
 
-    new_task = {
-        "id": max((item["id"] for item in tasks), default=0) + 1,
-        "title": task.title,
-        "completed": False,
-        "owner_id": task.owner_id,
-    }
-
-    tasks.append(new_task)
-    return new_task
+    return create_task_service(task.title, task.owner_id)
 
 
 # PUT /tasks/{task_id}
 @router.put("/{task_id}")
 def update_task(task_update: TaskUpdate, task: dict = Depends(find_task)):
-    if task_update is not None:
-        task["title"] = task_update.title
-        task["completed"] = task_update.completed
-
-    return task
+    return update_task_service(task, task_update.title, task_update.completed)
 
 
 
 # DELETE /tasks/{task_id}
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task: dict = Depends(find_task)):
-    tasks.remove(task)
+    delete_task_service(task)
 
 
 # PATCH /tasks/{task_id}
 @router.patch("/{task_id}")
 def patch_task(task_patch: TaskPatch, task: dict = Depends(find_task)):
-    if task_patch.title is not None:
-        task["title"] = task_patch.title
-    if task_patch.completed is not None:
-        task["completed"] = task_patch.completed
-
-    return task
+    return patch_task_service(
+        task,
+        title=task_patch.title,
+        completed=task_patch.completed,
+    )
