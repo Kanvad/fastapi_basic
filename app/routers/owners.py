@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas import OwnerCreate, OwnerResponse, OwnerUpdate, OwnerPatch
 from app.data import owners, tasks
 from app.dependencies import find_owner
+from app.exceptions import OwnerInUseError
 
 router = APIRouter(prefix="/owners", tags=["Owners"])
 
@@ -35,10 +36,7 @@ def delete_owner(owner: dict = Depends(find_owner)):
     )
 
     if owner_is_used:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Owner is being used by a task",
-        )
+        raise OwnerInUseError(owner["id"])
 
     owners.remove(owner)
 

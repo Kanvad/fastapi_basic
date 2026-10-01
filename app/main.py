@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.exceptions import TaskNotFoundError
+from app.exceptions import APIException, TaskNotFoundError
 from app.routers.tasks import router as tasks_router
 from app.routers.owners import router as owners_router
 
@@ -17,12 +17,12 @@ app.include_router(owners_router)
 def root():
     return {"message": "Hello FastAPI"}
 
-@app.exception_handler(TaskNotFoundError)
-async def task_not_found_exception_handler(
+@app.exception_handler(APIException)
+async def api_exception_handler(
     request: Request,
-    exc: TaskNotFoundError,
+    exc: APIException,
 ):
     return JSONResponse(
-        status_code=404,
-        content={"detail": f"Task {exc.task_id} not found"},
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
     )
