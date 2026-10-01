@@ -1,6 +1,9 @@
 from app.data import owners, tasks
 from app.exceptions import OwnerInUseError, OwnerNotFoundError
 
+def get_owners():
+    return owners
+
 def delete_owner(owner: dict):
     owner_is_used = any(
         task.get("owner_id") == owner["id"]
@@ -25,3 +28,11 @@ def get_owner(owner_id: int):
         if owner["id"] == owner_id:
             return owner
     raise OwnerNotFoundError(owner_id)
+
+def update_owner(owner: dict, name: str):
+    owner["name"] = name
+    return owner
+
+def patch_owner(owner: dict, name: str | None = None):
+    owner["name"] = name if name is not None else owner["name"]
+    return owner

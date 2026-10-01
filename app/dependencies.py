@@ -1,15 +1,17 @@
 from fastapi import Depends, HTTPException, status
 
-from app.data import owners, tasks
 from app.exceptions import TaskNotFoundError, OwnerNotFoundError
 from app.services.owner_service import get_owner
-from app.services.task_service import get_task_owner as get_task_owner_service
+from app.services.task_service import (
+    get_task as get_task_service,
+    get_task_owner as get_task_owner_service,
+)
 
 
 def find_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
+    task = get_task_service(task_id)
+    if task is not None:
+        return task
 
     raise TaskNotFoundError(task_id)
 
