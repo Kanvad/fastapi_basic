@@ -1,35 +1,21 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
 from app.data import tasks
-from app.dependencies import find_owner, find_task, validate_owner_id, log_request, get_task_owner, get_db, get_current_user
+from app.dependencies import find_task, validate_owner_id, get_task_owner
 from app.services.task_service import create_task as create_task_service, update_task as update_task_service, patch_task as patch_task_service, delete_task as delete_task_service
 
-API_KEY = "secret123"
-
-def verify_api_key(api_key: str):
-    if api_key != API_KEY:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API Key",
-        )
-
-def get_current_api_key(api_key: str):
-    return api_key
-
-router = APIRouter(prefix="/tasks", tags=["Tasks"], dependencies=[Depends(log_request)])
 
 
-@router.get("/some_endpoint")
-def some_endpoint(api_key: str = Depends(get_current_api_key)):
-    return {"api_key": api_key}
+router = APIRouter(prefix="/tasks", tags=["Tasks"])
+
+
+
 
 # GET /tasks
 @router.get("", response_model=list[TaskResponse])
-def get_tasks(
-    owner: dict | None = Depends(validate_owner_id),_: None = Depends(log_request)
-):
+def get_tasks(owner: dict | None = Depends(validate_owner_id)):
     if owner is None:
         return tasks
 
@@ -39,13 +25,8 @@ def get_tasks(
         if task.get("owner_id") == owner["id"]
     ]
 
-@router.get("/db")
-def get_resource(db: str = Depends(get_db)):
-    raise HTTPException(status_code=500, detail="Database error")
 
-@router.get("/context")
-def get_context(user: dict = Depends(get_current_user), db: dict = Depends(get_db)):
-    return {"user": user, "db": db}
+
 
 # GET /tasks/completed
 @router.get("/completed", response_model=list[TaskResponse])
@@ -69,16 +50,12 @@ def get_task_owner_endpoint(owner: Optional[dict] = Depends(get_task_owner)):
 
 # POST /tasks
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task: TaskCreate):
-
-    if task.owner_id is not None:
-        find_owner(task.owner_id)
-
+def create_task(task: TaskCreate, owner: dict | None = Depends(validate_owner_id)):
     return create_task_service(task.title, task.owner_id)
 
 
 # PUT /tasks/{task_id}
-@router.put("/{task_id}")
+@router.put("/{task_id}", response_model=TaskResponse)
 def update_task(task_update: TaskUpdate, task: dict = Depends(find_task)):
     return update_task_service(task, task_update.title, task_update.completed)
 
@@ -91,7 +68,7 @@ def delete_task(task: dict = Depends(find_task)):
 
 
 # PATCH /tasks/{task_id}
-@router.patch("/{task_id}")
+@router.patch("/{task_id}", response_model=TaskResponse)
 def patch_task(task_patch: TaskPatch, task: dict = Depends(find_task)):
     return patch_task_service(
         task,
