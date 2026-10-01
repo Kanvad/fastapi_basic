@@ -1,6 +1,19 @@
 from app.data import owners, tasks
 from app.services.owner_service import get_owner
 
+def get_tasks(owner: dict | None = None):
+    if owner is None:
+        return tasks
+
+    return [
+        task
+        for task in tasks
+        if task.get("owner_id") == owner["id"]
+    ]
+
+def get_completed_tasks():
+    return [task for task in tasks if task["completed"]]
+
 def get_task_owner(task: dict):
     owner_id = task.get("owner_id")
     if owner_id is not None:

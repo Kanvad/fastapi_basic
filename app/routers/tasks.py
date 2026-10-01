@@ -2,9 +2,15 @@ from typing import Optional
 from fastapi import APIRouter, status, Depends
 
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
-from app.data import tasks
 from app.dependencies import find_task, validate_owner_id, get_task_owner
-from app.services.task_service import create_task as create_task_service, update_task as update_task_service, patch_task as patch_task_service, delete_task as delete_task_service
+from app.services.task_service import (
+    get_tasks as get_tasks_service,
+    get_completed_tasks as get_completed_tasks_service,
+    create_task as create_task_service,
+    update_task as update_task_service,
+    patch_task as patch_task_service,
+    delete_task as delete_task_service,
+)
 
 
 
@@ -12,30 +18,16 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
 
-
 # GET /tasks
 @router.get("", response_model=list[TaskResponse])
 def get_tasks(owner: dict | None = Depends(validate_owner_id)):
-    if owner is None:
-        return tasks
-
-    return [
-        task
-        for task in tasks
-        if task.get("owner_id") == owner["id"]
-    ]
-
-
+    return get_tasks_service(owner)
 
 
 # GET /tasks/completed
 @router.get("/completed", response_model=list[TaskResponse])
 def get_completed_tasks():
-    completed_tasks = []
-    for task in tasks:
-        if task["completed"]:
-            completed_tasks.append(task)
-    return completed_tasks
+    return get_completed_tasks_service()
 
 
 # GET /tasks/{task_id}
