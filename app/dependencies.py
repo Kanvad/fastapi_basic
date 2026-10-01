@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 
 from app.data import owners, tasks
+from app.exceptions import TaskNotFoundError
 
 
 def find_task(task_id: int):
@@ -8,10 +9,7 @@ def find_task(task_id: int):
         if task["id"] == task_id:
             return task
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Task not found",
-    )
+    raise TaskNotFoundError(task_id)
 
 
 def find_owner(owner_id: int):
