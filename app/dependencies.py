@@ -1,29 +1,23 @@
 from fastapi import Depends, HTTPException, status
 
-from app.data import owners, tasks
+from app.exceptions import TaskNotFoundError, OwnerNotFoundError
+from app.services.owner_service import get_owner
+from app.services.task_service import (
+    get_task as get_task_service,
+    get_task_owner as get_task_owner_service,
+)
 
 
 def find_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
+    task = get_task_service(task_id)
+    if task is not None:
+        return task
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Task not found",
-    )
+    raise TaskNotFoundError(task_id)
 
 
 def find_owner(owner_id: int):
-    for owner in owners:
-        if owner["id"] == owner_id:
-            return owner
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Owner not found",
-    )
-
+    return get_owner(owner_id)
 
 def validate_owner_id(owner_id: int | None = None):
     if owner_id is None:
@@ -38,11 +32,10 @@ def log_request():
     print("Request finished")
 
 
+
 def get_task_owner(task: dict = Depends(find_task)):
-    owner_id = task.get("owner_id")
-    if owner_id is not None:
-        return find_owner(owner_id)
-    return None
+    return get_task_owner_service(task)
+
 
 def get_db():
     print("DB connection opened")
