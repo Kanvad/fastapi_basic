@@ -1,8 +1,9 @@
-from app.data import owners, tasks
+from app.data import tasks
 from app.exceptions import OwnerInUseError, OwnerNotFoundError
+from app.repositories import owner_repository
 
 def get_owners():
-    return owners
+    return owner_repository.get_all()
 
 def delete_owner(owner: dict):
     owner_is_used = any(
@@ -13,26 +14,19 @@ def delete_owner(owner: dict):
     if owner_is_used:
         raise OwnerInUseError(owner["id"])
 
-    owners.remove(owner)
+    return owner_repository.delete(owner)
 
 def create_owner(name: str):
-    new_owner = {
-        "id": max((item["id"] for item in owners), default=0) + 1,
-        "name": name,
-    }
-    owners.append(new_owner)
-    return new_owner
+    return owner_repository.create({"name": name})
 
 def get_owner(owner_id: int):
-    for owner in owners:
-        if owner["id"] == owner_id:
-            return owner
-    raise OwnerNotFoundError(owner_id)
+    owner = owner_repository.get_by_id(owner_id)
+    if owner is None:
+        raise OwnerNotFoundError(owner_id)
+    return owner
 
 def update_owner(owner: dict, name: str):
-    owner["name"] = name
-    return owner
+    return owner_repository.update(owner, name)
 
 def patch_owner(owner: dict, name: str | None = None):
-    owner["name"] = name if name is not None else owner["name"]
-    return owner
+    return owner_repository.patch(owner, name)

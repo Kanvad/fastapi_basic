@@ -10,10 +10,11 @@ from app.services.task_service import (
 
 def find_task(task_id: int):
     task = get_task_service(task_id)
-    if task is not None:
-        return task
 
-    raise TaskNotFoundError(task_id)
+    if task is None:
+        raise TaskNotFoundError(task_id)
+
+    return task
 
 
 def find_owner(owner_id: int):
