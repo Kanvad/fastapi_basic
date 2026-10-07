@@ -1,69 +1,68 @@
-from typing import Optional
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, HTTPException, status
 
+from app.data import tasks
 from app.schemas import TaskCreate, TaskUpdate, TaskPatch, TaskResponse
-from app.dependencies import find_task, validate_owner_id, get_task_owner
-from app.services.task_service import (
-    get_tasks as get_tasks_service,
-    get_completed_tasks as get_completed_tasks_service,
-    create_task as create_task_service,
-    update_task as update_task_service,
-    patch_task as patch_task_service,
-    delete_task as delete_task_service,
-)
-
 
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
+def find_task(task_id: int) -> dict:
+    for task in tasks:
+        if task["id"] == task_id:
+            return task
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Task with ID {task_id} not found",
+    )
+
 
 # GET /tasks
 @router.get("", response_model=list[TaskResponse])
-def get_tasks(owner: dict | None = Depends(validate_owner_id)):
-    return get_tasks_service(owner)
-
-
-# GET /tasks/completed
-@router.get("/completed", response_model=list[TaskResponse])
-def get_completed_tasks():
-    return get_completed_tasks_service()
+def get_tasks():
+    return tasks
 
 
 # GET /tasks/{task_id}
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task: dict = Depends(find_task)):
-    return task
-
-@router.get("/{task_id}/owner", response_model=Optional[dict])
-def get_task_owner_endpoint(owner: Optional[dict] = Depends(get_task_owner)):
-    return owner
+def get_task(task_id: int):
+    return find_task(task_id)
 
 
 # POST /tasks
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task: TaskCreate, owner: dict | None = Depends(validate_owner_id)):
-    return create_task_service(task.title, task.owner_id)
+def create_task(task: TaskCreate):
+    new_task = {
+        "id": max((item["id"] for item in tasks), default=0) + 1,
+        "title": task.title,
+        "completed": False,
+    }
+    tasks.append(new_task)
+    return new_task
 
 
 # PUT /tasks/{task_id}
 @router.put("/{task_id}", response_model=TaskResponse)
-def update_task(task_update: TaskUpdate, task: dict = Depends(find_task)):
-    return update_task_service(task, task_update.title, task_update.completed)
-
-
-
-# DELETE /tasks/{task_id}
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task: dict = Depends(find_task)):
-    delete_task_service(task)
+def update_task(task_id: int, task_update: TaskUpdate):
+    task = find_task(task_id)
+    task["title"] = task_update.title
+    task["completed"] = task_update.completed
+    return task
 
 
 # PATCH /tasks/{task_id}
 @router.patch("/{task_id}", response_model=TaskResponse)
-def patch_task(task_patch: TaskPatch, task: dict = Depends(find_task)):
-    return patch_task_service(
-        task,
-        title=task_patch.title,
-        completed=task_patch.completed,
-    )
+def patch_task(task_id: int, task_patch: TaskPatch):
+    task = find_task(task_id)
+    if task_patch.title is not None:
+        task["title"] = task_patch.title
+    if task_patch.completed is not None:
+        task["completed"] = task_patch.completed
+    return task
+
+
+# DELETE /tasks/{task_id}
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: int):
+    task = find_task(task_id)
+    tasks.remove(task)
